@@ -1,0 +1,37 @@
+### Send request
+GET http://localhost:3000/users
+
+
+### Get all users
+GET http://localhost:3000/users/getAll
+
+
+### Get user by ID
+GET http://localhost:3000/users/getUserById/3
+
+
+### Get user by email
+GET http://localhost:3000/users/getUserByEmail/Pepe@pepe.com
+
+
+### Login
+POST http://localhost:3000/users/login
+Content-Type: application/json
+
+{
+  "email": "pepe@pepe.com",
+  "password": "1234"
+}
+
+### Register
+POST http://localhost:3000/users/register
+Content-Type: application/json
+
+{
+  "name": "pepe",
+  "email": "pepe@pepe.com",
+  "password": "1234"
+}
+
+### Logout
+POST http://localhost:3000/users/logout

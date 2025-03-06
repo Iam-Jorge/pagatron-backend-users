@@ -1,0 +1,47 @@
+# Node modules
+/node_modules/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+
+# Build output
+/dist
+/build
+/.next
+/out
+/coverage
+
+# Dependency directories
+/bower_components
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE and editor specific files
+.vscode/
+.idea/
+
+# NPM package lock files (if you use yarn, include yarn.lock instead)
+package-lock.json
+yarn.lock
+
+# TypeScript build
+/tsconfig.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# macOS generated files
+*.swp
+
+# Other potential configurations
+/.env.local
+/.env.*.local
