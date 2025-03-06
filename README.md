@@ -36,6 +36,9 @@ This project is part of the **Web Systems Development 2025 course** at the Unive
 - **bcryptjs**: Library used for password hashing.
   - `npm install bcryptjs` 
   
+- **cookie-parser**: Parses cookies and puts the cookie information on req object in the middleware.
+  - `npm install cookie-parser` 
+
 
 ## Building the Project
 To set up and build the project, first clone this repository and then install the necessary dependencies.
