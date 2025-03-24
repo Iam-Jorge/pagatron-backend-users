@@ -16,6 +16,7 @@ app.use('/users', userRouter)
 
 { /* This functions checks and creates the scheme and tables */ }
 { /* createDB(); */ }
+createDB();
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
