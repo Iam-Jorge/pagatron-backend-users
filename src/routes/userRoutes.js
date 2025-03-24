@@ -18,10 +18,16 @@ userRouter.get('/getUserById/:id', UserController.getUserById);
 userRouter.get('/getUserByEmail/:email', UserController.getUserByEmail);
 
 // LOGIN
-userRouter.post('/login', UserController.login)
+userRouter.post('/login', UserController.login);
 
 // REGISTER
-userRouter.post('/register', UserController.register)
+userRouter.post('/register', UserController.register);
+
+// UPDATE USER
+userRouter.put('/update/:id', UserController.updateUser);
+
+// DELETE USER
+userRouter.delete('/delete/:id', UserController.deleteUser);
 
 // LOGOUT
-userRouter.post('/logout', UserController.logout)
+userRouter.post('/logout', UserController.logout);

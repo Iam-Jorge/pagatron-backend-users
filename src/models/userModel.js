@@ -46,7 +46,7 @@ export class UserModel {
   static async getUserById(id) {
     await UserModel.initializeConnection();
     const [userById] = await UserModel.connection.query('SELECT * FROM users WHERE id = ?', [id]);
-    if (userById.length === 0) return null;  // Si no existe el usuario
+    if (userById.length === 0) return null;
     const user = userById[0];
     return new User(user.id, user.name, user.email, user.password_hash, user.role, user.created_at);
   }
@@ -57,7 +57,7 @@ export class UserModel {
     if (!email) return null;
     const loweCaseEmail = email.toLowerCase();
     const [userByEmail] = await UserModel.connection.query('SELECT * FROM users WHERE email = ?', [loweCaseEmail]);
-    if (userByEmail.length === 0) return null;  // Si no existe el usuario
+    if (userByEmail.length === 0) return null;
     const user = userByEmail[0];
     return new User(user.id, user.name, user.email, user.password_hash, user.role, user.created_at);
   }
@@ -67,9 +67,57 @@ export class UserModel {
     await UserModel.initializeConnection();
     const { name, email, password_hash, role } = userData;
     const query = 'INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)';
-    await UserModel.connection.query(query, [name, email, password_hash, role]);
+    const [result] = await UserModel.connection.query(query, [name, email, password_hash, role]);
+    return result.insertId;
   }
 
-} 
+  // UPDATE USER
+  static async updateUser(id, userData) {
+    await UserModel.initializeConnection();
+    const { name, email, role } = userData;
+    
+    let updates = [];
+    const values = [];
+    
+    if (name !== undefined) {
+      updates.push('name = ?');
+      values.push(name);
+    }
+    
+    if (email !== undefined) {
+      updates.push('email = ?');
+      values.push(email.toLowerCase());
+    }
+    
+    if (role !== undefined) {
+      updates.push('role = ?');
+      values.push(role);
+    }
+    
+    if (userData.password_hash) {
+      updates.push('password_hash = ?');
+      values.push(userData.password_hash);
+    }
+    
+    if (updates.length === 0) {
+      return false;
+    }
+    
+    values.push(id);
+    
+    const query = `UPDATE users SET ${updates.join(', ')} WHERE id = ?`;
+    const [result] = await UserModel.connection.query(query, values);
+    
+    return result.affectedRows > 0;
+  }
+
+  // DELETE USER
+  static async deleteUser(id) {
+    await UserModel.initializeConnection();
+    const query = 'DELETE FROM users WHERE id = ?';
+    const [result] = await UserModel.connection.query(query, [id]);
+    return result.affectedRows > 0;
+  }
+}
 
 export default UserModel;

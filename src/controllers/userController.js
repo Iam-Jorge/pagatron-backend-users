@@ -38,38 +38,50 @@ export class UserController {
   // LOGIN
   static async login(req, res) {
     const { email, password } = req.body;
-    
+        
     if (!validateEmail(email)) {
       return res.status(400).json({ message: 'Invalid email format' });
     }
-    
+        
     const user = await UserModel.getUserByEmail(email);
-    
+        
     if (!user) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
-    
+        
     const passwordMatch = await validatePassword(password, user.password_hash);
-    
+        
     if (!passwordMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
-    
+        
     const token = jwt.sign(
-      { id: user.id, email: user.email },
+      {
+        id: user.id,
+        email: user.email,
+        role: user.role
+      },
       process.env.JWT_SECRET_KEY,
       { expiresIn: '1h' }
     );
-    
+        
     // Configurar la cookie con el token
     res.cookie('access_token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // Solo usa HTTPS en producción
+      secure: process.env.NODE_ENV === 'production',
       maxAge: 3600000, // 1 hora en milisegundos
-      sameSite: 'strict' // Protección contra ataques CSRF
+      sameSite: 'strict'
     });
     
-    res.status(200).json({ message: 'Login successful' });
+    res.status(200).json({
+      message: 'Login successful',
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
   }
 
   // REGISTER
@@ -89,7 +101,7 @@ export class UserController {
     // Aquí se crea una nueva instancia de la entidad User
     const user = new User(null, name, email, hashedPassword, 'user');
     
-    const newUserId = await UserModel.createUser(user);  // Asumiendo que devuelve el ID del usuario creado
+    const newUserId = await UserModel.createUser(user);
     
     // Generar token para auto-login después del registro
     const token = jwt.sign(
@@ -98,15 +110,83 @@ export class UserController {
       { expiresIn: '1h' }
     );
     
-    // Configurar la cookie con el token
     res.cookie('access_token', token, {
       httpOnly: true,
-      // secure: process.env.NODE_ENV === 'production', ONLY FOR HTTPS
       maxAge: 3600000, // 1 hora en milisegundos
       sameSite: 'strict'
     });
     
     res.status(201).json({ message: 'User registered successfully' });
+  }
+
+  // UPDATE USER
+  static async updateUser(req, res) {
+    const { id } = req.params;
+    const { name, email, newPassword, currentPassword, role } = req.body;
+  
+    const existingUser = await UserModel.getUserById(id);
+    if (!existingUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+  
+    const userData = {};
+  
+    if (name) userData.name = name;
+  
+    if (email) {
+      if (!validateEmail(email)) {
+        return res.status(400).json({ message: 'Invalid email format' });
+      }
+  
+      if (email !== existingUser.email) {
+        const userWithEmail = await UserModel.getUserByEmail(email);
+        if (userWithEmail && userWithEmail.id !== parseInt(id)) {
+          return res.status(400).json({ message: 'Email already in use' });
+        }
+      }
+  
+      userData.email = email;
+    }
+  
+    if (newPassword) {
+      const match = await bcrypt.compare(currentPassword, existingUser.password_hash);
+      if (!match) {
+        return res.status(400).json({ message: 'Contraseña actual incorrecta' });
+      }
+  
+      userData.password_hash = await bcrypt.hash(newPassword, 10);
+    }
+  
+    if (role) {
+      userData.role = role;
+    }
+  
+    const updated = await UserModel.updateUser(id, userData);
+  
+    if (updated) {
+      res.status(200).json({ message: "User updated successfully", updatedUser: userData });
+    } else {
+      res.status(400).json({ message: "Failed to update user" });
+    }
+  }
+  
+
+  // DELETE USER
+  static async deleteUser(req, res) {
+    const { id } = req.params;
+    
+    const existingUser = await UserModel.getUserById(id);
+    if (!existingUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    const deleted = await UserModel.deleteUser(id);
+    
+    if (deleted) {
+      res.status(200).json({ message: "User deleted successfully" });
+    } else {
+      res.status(400).json({ message: "Failed to delete user" });
+    }
   }
 
   // LOGOUT
@@ -115,8 +195,9 @@ export class UserController {
       httpOnly: true,
       sameSite: 'Strict',
     });
-  
+    
     res.status(200).json({ message: 'Logout successful' });
   }
-  
+
+
 }
