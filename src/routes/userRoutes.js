@@ -31,3 +31,6 @@ userRouter.delete('/delete/:id', UserController.deleteUser);
 
 // LOGOUT
 userRouter.post('/logout', UserController.logout);
+
+// VALIDATE USER KEY (ROL)
+userRouter.post('/validateUserKey', UserController.validateUserKey);

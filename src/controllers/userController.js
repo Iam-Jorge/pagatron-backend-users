@@ -86,37 +86,43 @@ export class UserController {
 
   // REGISTER
   static async register(req, res) {
-    const { name, email, password } = req.body;
-    
+    const { name, email, password, role, userKey } = req.body;
+
     if (!validateEmail(email)) {
       return res.status(400).json({ message: 'Invalid email format' });
     }
-    
+
     if (await emailExists(email, UserModel)) {
       return res.status(400).json({ message: 'User already exists' });
     }
-    
+
     const hashedPassword = await bcrypt.hash(password, 10);
-    
-    // Aquí se crea una nueva instancia de la entidad User
-    const user = new User(null, name, email, hashedPassword, 'user');
-    
+
+    // Validación del USER_KEY
+    let assignedRole = 'user';
+    if (role === 'admin') {
+      if (!userKey || userKey !== process.env.USER_KEY) {
+        return res.status(403).json({ message: 'Invalid admin key' });
+      }
+      assignedRole = 'admin';
+    }
+
+    const user = new User(null, name, email, hashedPassword, assignedRole);
     const newUserId = await UserModel.createUser(user);
-    
-    // Generar token para auto-login después del registro
+
     const token = jwt.sign(
-      { id: newUserId, email: user.email },
+      { id: newUserId, email: user.email, role: assignedRole },
       process.env.JWT_SECRET_KEY,
       { expiresIn: '1h' }
     );
-    
+
     res.cookie('access_token', token, {
       httpOnly: true,
-      maxAge: 3600000, // 1 hora en milisegundos
+      maxAge: 3600000,
       sameSite: 'strict'
     });
-    
-    res.status(201).json({ message: 'User registered successfully' });
+
+    res.status(201).json({ message: 'User registered successfully', role: assignedRole });
   }
 
   // UPDATE USER
@@ -199,5 +205,23 @@ export class UserController {
     res.status(200).json({ message: 'Logout successful' });
   }
 
+  // VALIDATE USER_KEY (ROL)
+  static async validateUserKey(req, res) {
+    try {
+      const { userKey } = req.body; // Capturar la clave enviada desde el frontend
+      if (!userKey) {
+        return res.status(400).json({ valid: false, message: "USER_KEY is required" });
+      }
+
+      // Comparar con la clave almacenada en las variables de entorno
+      if (userKey === process.env.USER_KEY) {
+        return res.status(200).json({ valid: true });
+      } else {
+        return res.status(403).json({ valid: false, message: "Invalid USER_KEY" });
+      }
+    } catch (error) {
+      res.status(500).json({ valid: false, message: "Error validating USER_KEY", error: error.message });
+    }
+  }
 
 }
