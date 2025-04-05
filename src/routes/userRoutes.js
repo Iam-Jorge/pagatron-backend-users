@@ -1,36 +1,42 @@
 import { Router } from 'express';
 import { UserController } from '../controllers/userController.js';
-
+import { TransactionController } from '../controllers/transactionCOntroller.js';
+import { FriendshipController } from '../controllers/friendshipController.js';
 export const userRouter = Router();
 
-// ROOT
+// USERS
 userRouter.get('/', (req, res) => {
   res.send("En usuarios");
 });
-
-// GET ALL USERS
 userRouter.get('/getAll', UserController.getAll);
-
-// GET USER BY ID
 userRouter.get('/getUserById/:id', UserController.getUserById);
-
-// GET USER BY EMAIL
 userRouter.get('/getUserByEmail/:email', UserController.getUserByEmail);
-
-// LOGIN
 userRouter.post('/login', UserController.login);
-
-// REGISTER
 userRouter.post('/register', UserController.register);
-
-// UPDATE USER
 userRouter.put('/update/:id', UserController.updateUser);
-
-// DELETE USER
 userRouter.delete('/delete/:id', UserController.deleteUser);
-
-// LOGOUT
 userRouter.post('/logout', UserController.logout);
-
-// VALIDATE USER KEY (ROL)
 userRouter.post('/validateUserKey', UserController.validateUserKey);
+userRouter.post('/checkEmailExists', UserController.checkEmailExists);
+
+
+// TRANSACTIONS
+userRouter.post('/request-money', TransactionController.requestMoney);
+userRouter.post('/accept-money/:transactionId', TransactionController.acceptMoneyRequest);
+userRouter.get('/transactions', TransactionController.getAllTransactions);
+userRouter.get('/transactions/user', TransactionController.getTransactionsByEmail);
+userRouter.post('/revoke-transaction/:transactionId', TransactionController.revokeTransaction);
+userRouter.get('/pending-requests', TransactionController.getPendingRequests);
+userRouter.post('/accept-request/:requestId', TransactionController.acceptRequest);
+userRouter.post('/decline-request/:requestId', TransactionController.declineRequest);
+userRouter.post('/send-money', TransactionController.sendMoney);
+userRouter.get('/sent-requests', TransactionController.getSentRequests);
+userRouter.get('/received-requests', TransactionController.getReceivedRequests);
+
+// FRIENDSHIPS
+userRouter.post('/friendship/send-friend-request', FriendshipController.sendFriendRequest);
+userRouter.post('/friendship/accept-friend-request/:requestId', FriendshipController.acceptFriendRequest);
+userRouter.post('/friendship/decline-friend-request/:requestId', FriendshipController.declineFriendRequest);
+userRouter.get('/friendship/friends/:userEmail', FriendshipController.getFriends);
+userRouter.delete('/friendship/remove-friend/:userId/:friendId', FriendshipController.removeFriend);
+userRouter.get('/friendship/received-requests/:userEmail', FriendshipController.getReceivedRequests);

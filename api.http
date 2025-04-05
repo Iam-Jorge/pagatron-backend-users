@@ -35,3 +35,40 @@ Content-Type: application/json
 
 ### Logout
 POST http://localhost:3000/users/logout
+
+
+
+
+
+
+
+
+### Enviar solicitud de amistad
+POST http://localhost:3000/users/friendship/send-friend-request
+Content-Type: application/json
+
+{
+  "userEmail": "pepe@pepe.com",
+  "friendEmail": "juan@juan.com"
+}
+
+### Aceptar solicitud de amistad
+POST http://localhost:3000/users/friendship/accept-request/1
+Content-Type: application/json
+
+### Rechazar solicitud de amistad
+POST http://localhost:3000/users/friendship/decline-request/1
+Content-Type: application/json
+
+### Obtener amigos de un usuario
+GET http://localhost:3000/users/friendship/friends/juan@juan.com
+Content-Type: application/json
+
+### Eliminar un amigo
+DELETE http://localhost:3000/users/friendship/remove-friend/7/10
+Content-Type: application/json
+
+
+### Obtener solicitudes de amistad recibidas
+GET http://localhost:3000/users/friendship/received-requests/juan@juan.com
+Content-Type: application/json

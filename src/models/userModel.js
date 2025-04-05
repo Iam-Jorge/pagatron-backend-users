@@ -118,6 +118,26 @@ export class UserModel {
     const [result] = await UserModel.connection.query(query, [id]);
     return result.affectedRows > 0;
   }
+
+  // CHECK IF EMAIL EXISTS
+  static async checkEmailExists(req, res) {
+    try {
+      const { email } = req.body;
+  
+      const user = await User.findOne({ where: { email } });
+  
+      if (user) {
+        return res.json({ exists: true });
+      } else {
+        return res.json({ exists: false });
+      }
+    } catch (error) {
+      console.error('Error checking email existence:', error);
+      return res.status(500).json({ message: 'Error checking email' });
+    }
+  }
+
+
 }
 
 export default UserModel;

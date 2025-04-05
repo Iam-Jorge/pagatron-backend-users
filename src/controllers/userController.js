@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { User } from '../entities/user.js';
 import UserModel from '../models/userModel.js';
-import { validatePassword, validateEmail, emailExists } from './validation.js';
+import { validatePassword, validateEmail, emailExists } from '../config/validation.js';
 
 export class UserController {
 
@@ -223,5 +223,29 @@ export class UserController {
       res.status(500).json({ valid: false, message: "Error validating USER_KEY", error: error.message });
     }
   }
+
+  
+  static async checkEmailExists(email) {
+    try {
+      const response = await fetch(`${API_URL}/checkEmailExists`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to check email existence');
+      }
+  
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error checking email existence:', error);
+      throw error;
+    }
+  }
+  
 
 }
