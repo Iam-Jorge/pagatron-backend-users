@@ -55,9 +55,9 @@ To start the application in a production environment:
   - `npm install cookie-parser` 
 
 
-# API Routes Documentation
+## API Routes Documentation 
 
-## User Management
+### User Management
 
 | Method | Path | Controller |
 |:------:|------|------------|
@@ -72,7 +72,7 @@ To start the application in a production environment:
 | 🟠 **POST** | `/validateUserKey` | `UserController.validateUserKey` |
 | 🟠 **POST** | `/checkEmailExists` | `UserController.checkEmailExists` |
 
-## Transactions
+### Transactions
 
 | Method | Path | Controller |
 |:------:|------|------------|
@@ -88,7 +88,7 @@ To start the application in a production environment:
 | 🟢 **GET** | `/sent-requests` | `TransactionController.getSentRequests` |
 | 🟢 **GET** | `/received-requests` | `TransactionController.getReceivedRequests` |
 
-## Friendships
+### Friendships
 
 | Method | Path | Controller |
 |:------:|------|------------|
