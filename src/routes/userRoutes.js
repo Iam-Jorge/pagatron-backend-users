@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { UserController } from '../controllers/userController.js';
-import { TransactionController } from '../controllers/transactionCOntroller.js';
+import { TransactionController } from '../controllers/transactionController.js';
 import { FriendshipController } from '../controllers/friendshipController.js';
 export const userRouter = Router();
 

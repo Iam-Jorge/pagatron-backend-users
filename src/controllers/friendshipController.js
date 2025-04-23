@@ -22,7 +22,7 @@ export class FriendshipController {
       if (!sender || !recipient) {
         return res.status(404).json({ 
           success: false, 
-          message: 'Uno o ambos usuarios no existen.' 
+          message: 'The entered email is not found in the database.' 
         });
       }
       
