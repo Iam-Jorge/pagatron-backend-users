@@ -55,3 +55,46 @@ To start the application in a production environment:
   - `npm install cookie-parser` 
 
 
+# API Routes Documentation
+
+## User Management
+
+| Method | Path | Controller |
+|:------:|------|------------|
+| 🟢 **GET** | `/getAll` | `UserController.getAll` |
+| 🟢 **GET** | `/getUserById/:id` | `UserController.getUserById` |
+| 🟢 **GET** | `/getUserByEmail/:email` | `UserController.getUserByEmail` |
+| 🟠 **POST** | `/login` | `UserController.login` |
+| 🟠 **POST** | `/register` | `UserController.register` |
+| 🔵 **PUT** | `/update/:id` | `UserController.updateUser` |
+| 🔴 **DELETE** | `/delete/:id` | `UserController.deleteUser` |
+| 🟠 **POST** | `/logout` | `UserController.logout` |
+| 🟠 **POST** | `/validateUserKey` | `UserController.validateUserKey` |
+| 🟠 **POST** | `/checkEmailExists` | `UserController.checkEmailExists` |
+
+## Transactions
+
+| Method | Path | Controller |
+|:------:|------|------------|
+| 🟠 **POST** | `/request-money` | `TransactionController.requestMoney` |
+| 🟠 **POST** | `/accept-money/:transactionId` | `TransactionController.acceptMoneyRequest` |
+| 🟢 **GET** | `/transactions` | `TransactionController.getAllTransactions` |
+| 🟢 **GET** | `/transactions/user` | `TransactionController.getTransactionsByEmail` |
+| 🟠 **POST** | `/revoke-transaction/:transactionId` | `TransactionController.revokeTransaction` |
+| 🟢 **GET** | `/pending-requests` | `TransactionController.getPendingRequests` |
+| 🟠 **POST** | `/accept-request/:requestId` | `TransactionController.acceptRequest` |
+| 🟠 **POST** | `/decline-request/:requestId` | `TransactionController.declineRequest` |
+| 🟠 **POST** | `/send-money` | `TransactionController.sendMoney` |
+| 🟢 **GET** | `/sent-requests` | `TransactionController.getSentRequests` |
+| 🟢 **GET** | `/received-requests` | `TransactionController.getReceivedRequests` |
+
+## Friendships
+
+| Method | Path | Controller |
+|:------:|------|------------|
+| 🟠 **POST** | `/friendship/send-friend-request` | `FriendshipController.sendFriendRequest` |
+| 🟠 **POST** | `/friendship/accept-friend-request/:requestId` | `FriendshipController.acceptFriendRequest` |
+| 🟠 **POST** | `/friendship/decline-friend-request/:requestId` | `FriendshipController.declineFriendRequest` |
+| 🟢 **GET** | `/friendship/friends/:userEmail` | `FriendshipController.getFriends` |
+| 🔴 **DELETE** | `/friendship/remove-friend/:userId/:friendId` | `FriendshipController.removeFriend` |
+| 🟢 **GET** | `/friendship/received-requests/:userEmail` | `FriendshipController.getReceivedRequests` |
