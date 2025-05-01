@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     recipient_email VARCHAR(100) NOT NULL,
     amount DECIMAL(10,2) NOT NULL,
     message TEXT,
-    status ENUM('pending', 'completed', 'failed') DEFAULT 'pending',
+    status ENUM('pending', 'completed', 'declined') DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (sender_email) REFERENCES users(email) ON DELETE CASCADE,
     FOREIGN KEY (recipient_email) REFERENCES users(email) ON DELETE CASCADE

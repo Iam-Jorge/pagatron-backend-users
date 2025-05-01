@@ -45,13 +45,18 @@ export class TransactionController {
 
     // Aceptar solicitud de dinero
     static async acceptRequest(req, res) {
-        const { requestId } = req.params;
-        const result = await TransactionModel.acceptRequest(requestId);
-        if (!result.success) {
-            return res.status(400).json({ error: result.message });
-        }
+      const { requestId } = req.params;
+      console.log('acceptRequest requestId:', requestId);
 
-        res.json({ message: result.message });
+      const result = await TransactionModel.acceptRequest(requestId);
+      console.log('acceptRequest result:', result);
+
+      if (!result.success) {
+          console.log('acceptRequest error:', result.message);
+          return res.status(400).json({ error: result.message });
+      }
+
+      res.json({ message: result.message });
     }
 
     // Rechazar solicitud de dinero

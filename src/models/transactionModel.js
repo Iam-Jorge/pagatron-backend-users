@@ -49,61 +49,59 @@ export class transactionModel {
   static async acceptMoneyRequest(transactionId) {
     const connection = await pool.getConnection();
     try {
-      // Iniciar transacción SQL
-      await connection.beginTransaction();
+        await connection.beginTransaction();
 
-      const [transaction] = await connection.execute(
-        "SELECT * FROM transactions WHERE id = ? AND status = 'pending' FOR UPDATE", // Bloquea la fila
-        [transactionId]
-      );
+        const [transaction] = await connection.execute(
+            "SELECT * FROM transactions WHERE id = ? AND status = 'pending' FOR UPDATE",
+            [transactionId]
+        );
 
-      if (!transaction.length) {
-        await connection.rollback();
-        return { success: false, message: "Transacción no encontrada o ya procesada" };
-      }
+        if (!transaction.length) {
+            await connection.rollback();
+            return { success: false, message: "Transacción no encontrada o ya procesada" };
+        }
 
-      const { sender_email, recipient_email, amount } = transaction[0];
+        const { sender_email, recipient_email, amount } = transaction[0];
+        const [payerCards] = await connection.execute(
+            "SELECT * FROM creditcards WHERE user_email = ? FOR UPDATE",
+            [recipient_email]
+        );
 
-      // Verificar saldo con bloqueo de filas
-      const [senderCards] = await connection.execute(
-        "SELECT * FROM creditcards WHERE user_email = ? FOR UPDATE",
-        [sender_email]
-      );
+        if (!payerCards.length || parseFloat(payerCards[0].balance) < parseFloat(amount)) {
+            await connection.rollback();
+            return { success: false, message: "Saldo insuficiente" };
+        }
 
-      if (!senderCards.length || senderCards[0].balance < amount) {
-        await connection.rollback();
-        return { success: false, message: "Saldo insuficiente" };
-      }
+        // Quitar dinero al destinatario (quien paga)
+        await connection.execute(
+            "UPDATE creditcards SET balance = balance - ? WHERE user_email = ?",
+            [amount, recipient_email]
+        );
 
-      // Realizar operaciones dentro de la misma transacción
-      await connection.execute(
-        "UPDATE creditcards SET balance = balance - ? WHERE user_email = ?", 
-        [amount, sender_email]
-      );
-      
-      await connection.execute(
-        "UPDATE creditcards SET balance = balance + ? WHERE user_email = ?", 
-        [amount, recipient_email]
-      );
-      
-      await connection.execute(
-        "UPDATE transactions SET status = 'completed' WHERE id = ?", 
-        [transactionId]
-      );
+        // Dar dinero al remitente (quien solicitó)
+        await connection.execute(
+            "UPDATE creditcards SET balance = balance + ? WHERE user_email = ?",
+            [amount, sender_email]
+        );
 
-      // Confirmar la transacción
-      await connection.commit();
-      
-      return { success: true, message: "Solicitud aceptada y dinero transferido" };
+        // Marcar transacción como completada
+        await connection.execute(
+            "UPDATE transactions SET status = 'completed' WHERE id = ?",
+            [transactionId]
+        );
+
+        await connection.commit();
+        return { success: true, message: "Solicitud aceptada y dinero transferido al remitente" };
+
     } catch (error) {
-      // Revertir en caso de error
-      await connection.rollback();
-      console.error('Error en acceptMoneyRequest:', error);
-      return { success: false, message: "Error al procesar la solicitud: " + error.message };
+        await connection.rollback();
+        console.error('Error en acceptMoneyRequest:', error);
+        return { success: false, message: "Error al procesar la solicitud: " + error.message };
     } finally {
-      connection.release(); // Siempre liberar la conexión
+        connection.release();
     }
   }
+
 
   // GET ALL TRANSACTIONS
   static async getAllTransactions() {
@@ -238,56 +236,90 @@ export class transactionModel {
   static async acceptRequest(requestId) {
     const connection = await pool.getConnection();
     try {
+      console.log("Transacción iniciada.");
+
+      // Iniciar transacción
       await connection.beginTransaction();
 
+      // Obtener la transacción pendiente
       const [transaction] = await connection.execute(
         "SELECT * FROM transactions WHERE id = ? AND status = 'pending' FOR UPDATE",
         [requestId]
       );
+      
+      console.log("Transacción obtenida:", transaction);
 
       if (!transaction.length) {
         await connection.rollback();
+        console.log("Transacción no encontrada o ya procesada.");
         return { success: false, message: "Transacción no encontrada o ya procesada" };
       }
 
       const { sender_email, recipient_email, amount } = transaction[0];
+      console.log(`Transacción encontrada. Remitente: ${sender_email}, Destinatario: ${recipient_email}, Monto: ${amount}`);
 
       // Verificar saldo con bloqueo de filas
       const [senderCards] = await connection.execute(
         "SELECT * FROM creditcards WHERE user_email = ? FOR UPDATE",
         [sender_email]
       );
+      console.log("Tarjetas del remitente obtenidas:", senderCards);
 
-      if (!senderCards.length || senderCards[0].balance < amount) {
+      if (!senderCards.length) {
         await connection.rollback();
+        console.log(`No se encontraron tarjetas para el remitente con email: ${sender_email}`);
+        return { success: false, message: "No se encontraron tarjetas para el remitente" };
+      }
+
+      const senderCard = senderCards[0]; // Suponiendo que la primera tarjeta es la principal
+      console.log(`Saldo de la tarjeta del remitente: ${senderCard.balance}`);
+
+      // Convertir tanto el saldo como el monto a números para la comparación
+      const senderBalance = parseFloat(senderCard.balance);  // Convertimos a número
+      const transactionAmount = parseFloat(amount);  // Convertimos a número
+
+      console.log(`Saldo (convertido) de la tarjeta del remitente: ${senderBalance}`);
+      console.log(`Monto (convertido) de la transacción: ${transactionAmount}`);
+
+      if (senderBalance < transactionAmount) {
+        await connection.rollback();
+        console.log(`Saldo insuficiente en la tarjeta del remitente. Necesita: ${transactionAmount}, disponible: ${senderBalance}`);
         return { success: false, message: "Saldo insuficiente en la tarjeta del remitente" };
       }
 
+      // Realizar la transferencia de dinero
       await connection.execute(
         "UPDATE creditcards SET balance = balance - ? WHERE user_email = ?", 
-        [amount, sender_email]
+        [transactionAmount, recipient_email]
       );
       
       await connection.execute(
         "UPDATE creditcards SET balance = balance + ? WHERE user_email = ?", 
-        [amount, recipient_email]
+        [transactionAmount, sender_email]
       );
-      
+
+      // Marcar la transacción como completada
       await connection.execute(
         "UPDATE transactions SET status = 'completed' WHERE id = ?", 
         [requestId]
       );
 
       await connection.commit();
+      console.log("Solicitud aceptada y dinero transferido.");
       return { success: true, message: "Solicitud aceptada y dinero transferido" };
+
     } catch (error) {
       await connection.rollback();
       console.error('Error en acceptRequest:', error);
       return { success: false, message: "Error al aceptar la solicitud: " + error.message };
     } finally {
       connection.release();
+      console.log("Conexión liberada.");
     }
-  }
+}
+
+  
+  
 
   // SEND MONEY
   static async sendMoney(sender_email, recipient_email, amount, message = '') {
